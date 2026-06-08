@@ -144,10 +144,11 @@
             <li class="empty">No loaves added yet.</li>
           </ul>
           <div class="total-row"><span>Total</span><strong id="cart-total">$0</strong></div>
+          <button id="clear-cart" class="text-button" type="button">Clear order</button>
         </div>
       </div>
 
-      <form class="order-form" action="mailto:hello@mapleandmoss.com" method="post" enctype="text/plain">
+      <form id="order-form" class="order-form">
         <label>
           Name
           <input type="text" name="name" placeholder="Your name" required />
@@ -178,7 +179,7 @@
         </label>
         <input type="hidden" id="cart-field" name="cart" value="" />
         <button class="button primary full" type="submit">Send Order Request</button>
-        <p class="form-note">Replace the email in the form action with your real business email.</p>
+        <p class="form-note">This opens an email with the full order. Change <code>BUSINESS_EMAIL</code> in script.js to your real business email.</p>
       </form>
     </section>
   </main>
