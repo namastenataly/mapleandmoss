@@ -4,10 +4,29 @@ const cartTotal = document.querySelector('#cart-total');
 const cartField = document.querySelector('#cart-field');
 const orderForm = document.querySelector('#order-form');
 const year = document.querySelector('#year');
+const clearButton = document.querySelector('#clear-cart');
 
-const BUSINESS_EMAIL = 'hello@mapleandmoss.com'; // Change this to your real email.
+// ==============================
+// MAPLE & MOSS SETTINGS
+// ==============================
+// 1) Create an EmailJS account.
+// 2) Add your EmailJS Public Key, Service ID, and Template ID below.
+// 3) Create a Stripe Payment Link and paste it below.
+// Official docs:
+// EmailJS browser SDK: https://www.emailjs.com/docs/sdk/installation/
+// Stripe Payment Links: https://docs.stripe.com/payment-links/create
 
-year.textContent = new Date().getFullYear();
+const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/YOUR_PAYMENT_LINK';
+const BUSINESS_EMAIL = 'hello@mapleandmoss.com';
+
+if (year) year.textContent = new Date().getFullYear();
+
+if (window.emailjs && EMAILJS_PUBLIC_KEY !== 'YOUR_EMAILJS_PUBLIC_KEY') {
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+}
 
 document.querySelectorAll('.menu-card button').forEach((button) => {
   button.addEventListener('click', () => {
@@ -54,6 +73,15 @@ function clearCart() {
   renderCart();
 }
 
+function getCartTotal() {
+  return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+function getCartText() {
+  if (!cart.length) return '';
+  return cart.map((item) => `${item.qty} x ${item.name} - $${item.price * item.qty}`).join('\n');
+}
+
 function renderCart() {
   cartItems.innerHTML = '';
 
@@ -64,13 +92,10 @@ function renderCart() {
     return;
   }
 
-  let total = 0;
-  const cartText = [];
+  const total = getCartTotal();
 
   cart.forEach((item) => {
     const itemTotal = item.price * item.qty;
-    total += itemTotal;
-    cartText.push(`${item.qty} x ${item.name} - $${itemTotal}`);
 
     const li = document.createElement('li');
     li.className = 'cart-line';
@@ -90,7 +115,7 @@ function renderCart() {
   });
 
   cartTotal.textContent = `$${total}`;
-  cartField.value = `${cartText.join('\n')}\nTotal: $${total}`;
+  cartField.value = `${getCartText()}\nTotal: $${total}`;
 }
 
 cartItems.addEventListener('click', (event) => {
@@ -104,7 +129,7 @@ cartItems.addEventListener('click', (event) => {
   if (action === 'remove') removeItem(name);
 });
 
-orderForm.addEventListener('submit', (event) => {
+orderForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!cart.length) {
@@ -113,25 +138,66 @@ orderForm.addEventListener('submit', (event) => {
     return;
   }
 
+  const submitButton = orderForm.querySelector('button[type="submit"]');
+  const status = document.querySelector('#order-status');
   const formData = new FormData(orderForm);
-  const subject = 'New Maple & Moss Order Request';
-  const body = [
-    'New Maple & Moss order request',
-    '',
-    `Name: ${formData.get('name')}`,
-    `Email: ${formData.get('email')}`,
-    `Phone: ${formData.get('phone') || 'N/A'}`,
-    `Pickup/Delivery: ${formData.get('fulfillment')}`,
-    `Address/Pickup note: ${formData.get('address') || 'N/A'}`,
-    '',
-    'Order:',
-    cartField.value,
-    '',
-    `Notes: ${formData.get('notes') || 'N/A'}`,
-  ].join('\n');
+  const total = getCartTotal();
 
-  window.location.href = `mailto:${BUSINESS_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const order = {
+    customer_name: formData.get('name'),
+    customer_email: formData.get('email'),
+    customer_phone: formData.get('phone') || 'N/A',
+    fulfillment: formData.get('fulfillment'),
+    address: formData.get('address') || 'N/A',
+    notes: formData.get('notes') || 'N/A',
+    order_items: getCartText(),
+    order_total: `$${total}`,
+    business_email: BUSINESS_EMAIL,
+  };
+
+  submitButton.disabled = true;
+  submitButton.textContent = 'Sending order...';
+  status.textContent = '';
+
+  try {
+    if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'YOUR_EMAILJS_PUBLIC_KEY') {
+      throw new Error('EmailJS is not configured yet.');
+    }
+
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, order);
+
+    status.textContent = 'Order sent! Opening payment page now.';
+
+    if (STRIPE_PAYMENT_LINK.includes('YOUR_PAYMENT_LINK')) {
+      alert('Order sent. Add your real Stripe Payment Link in script.js to collect payment online.');
+    } else {
+      window.open(STRIPE_PAYMENT_LINK, '_blank', 'noopener,noreferrer');
+    }
+  } catch (error) {
+    console.error(error);
+
+    const subject = 'New Maple & Moss Order Request';
+    const body = [
+      'New Maple & Moss order request',
+      '',
+      `Name: ${order.customer_name}`,
+      `Email: ${order.customer_email}`,
+      `Phone: ${order.customer_phone}`,
+      `Pickup/Delivery: ${order.fulfillment}`,
+      `Address/Pickup note: ${order.address}`,
+      '',
+      'Order:',
+      cartField.value,
+      '',
+      `Notes: ${order.notes}`,
+    ].join('\n');
+
+    status.textContent = 'EmailJS is not configured yet, so your email app will open with the order details.';
+    window.location.href = `mailto:${BUSINESS_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = 'Send Order + Pay';
+  }
 });
 
-const clearButton = document.querySelector('#clear-cart');
 if (clearButton) clearButton.addEventListener('click', clearCart);

@@ -178,8 +178,9 @@
           <textarea name="notes" rows="5" placeholder="Example: 1 classic, 1 cinnamon maple, delivery after 10am"></textarea>
         </label>
         <input type="hidden" id="cart-field" name="cart" value="" />
-        <button class="button primary full" type="submit">Send Order Request</button>
-        <p class="form-note">This opens an email with the full order. Change <code>BUSINESS_EMAIL</code> in script.js to your real business email.</p>
+        <button class="button primary full" type="submit">Send Order + Pay</button>
+        <p id="order-status" class="form-note" aria-live="polite"></p>
+        <p class="form-note">This sends the order with EmailJS, then opens your Stripe Payment Link. Add your EmailJS keys and Stripe link inside <code>script.js</code>.</p>
       </form>
     </section>
   </main>
@@ -189,6 +190,7 @@
     <p>Instagram · Pickup · Local delivery</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

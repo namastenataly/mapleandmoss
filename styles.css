@@ -222,3 +222,55 @@ h1 {
   .hero-card { rotate: 0deg; }
   .footer { flex-direction: column; }
 }
+
+.text-button {
+  margin-top: 0.9rem;
+  border: 0;
+  background: transparent;
+  color: var(--maple-dark);
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.cart-line {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.6rem;
+}
+
+.cart-line small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+}
+
+.cart-name { color: var(--ink); font-weight: 800; }
+
+.cart-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.cart-actions button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fffdf8;
+  color: var(--moss);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.35rem 0.55rem;
+}
+
+.cart-actions strong { color: var(--maple-dark); min-width: 3rem; text-align: right; }
+
+code {
+  background: rgba(49, 75, 53, 0.08);
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.25rem;
+}
